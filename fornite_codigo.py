@@ -29,7 +29,7 @@ try:
 
     # --- CREAR GRÁFICO CON MATPLOTLIB ---
     # Usamos subplots para tener control total de la figura
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     # 1. Los puntos (Scatter)
     ax.scatter(x, y, alpha=0.5, c='blue', label='Jugadores')
