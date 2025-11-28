@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Fortnite Stats", layout="wide")
-st.title("Análisis de Fortnite: Solo Mode")
+st.title("Análisis de Fortnite: Modo Solo")
 
 # 1. Cargar datos
 @st.cache_data
