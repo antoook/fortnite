@@ -4,58 +4,63 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Fortnite Stats", layout="wide")
-st.title("🏆 Análisis de Fortnite: Solo Mode")
+st.title("🏆 Análisis de Fortnite")
 
 # 1. Cargar datos
 @st.cache_data
 def load_data():
-    # Asegúrate de que el CSV esté en la misma carpeta
     return pd.read_csv("Fortnite_players_stats.csv")
 
 try:
     df = load_data()
 
-    st.header("⏳ Relación: Tiempo vs. Puntaje (Matplotlib)")
-    st.write("Gráfico generado usando solo Matplotlib y Numpy para la tendencia.")
+    st.write("Aquí abajo verás el gráfico mucho más pequeño 👇")
 
-    # --- PREPARACIÓN DE DATOS ---
-    x = df['Solo minutesPlayed']
-    y = df['Solo score']
+    # --- EL TRUCO PARA HACERLO CHICO ---
+    # Dividimos la pantalla en 3 columnas invisibles.
+    # col1: Izquierda (Pequeña) | col2: Centro (Grande) | col3: Derecha (Pequeña)
+    # Los números [1, 2] significan que la segunda columna es el doble de ancha que la primera.
+    col_izquierda, col_derecha = st.columns([1, 2]) 
 
-    # Calcular la línea de tendencia (Regresión Lineal) con Numpy
-    # np.polyfit ajusta una línea (grado 1) a los datos
-    z = np.polyfit(x, y, 1)
-    p = np.poly1d(z)
+    # "with col_izquierda:" le dice a Streamlit: "Pon esto SOLO en la columna de la izquierda"
+    with col_izquierda:
+        st.subheader("⏳ Minutos vs Puntaje")
+        
+        # Datos
+        x = df['Solo minutesPlayed']
+        y = df['Solo score']
+        
+        # Tendencia
+        z = np.polyfit(x, y, 1)
+        p = np.poly1d(z)
 
-    # --- CREAR GRÁFICO CON MATPLOTLIB ---
-    # Usamos subplots para tener control total de la figura
-    fig, ax = plt.subplots(figsize=(5, 3))
+        # Gráfico (figsize pequeño: 5 pulgadas de ancho x 3.5 de alto)
+        fig, ax = plt.subplots(figsize=(5, 3.5)) 
+        
+        ax.scatter(x, y, alpha=0.5, c='#1f77b4', s=5) # Puntos muy pequeños
+        ax.plot(x, p(x), "r--", linewidth=1, label='Tendencia')
 
-    # 1. Los puntos (Scatter)
-    ax.scatter(x, y, alpha=0.5, c='blue', label='Jugadores')
+        # Textos más pequeños para que quepan bien
+        ax.set_title("Relación Tiempo/Puntaje", fontsize=9)
+        ax.set_xlabel("Minutos", fontsize=7)
+        ax.set_ylabel("Puntaje", fontsize=7)
+        ax.tick_params(labelsize=6)
+        ax.legend(fontsize=6)
+        ax.grid(True, alpha=0.3)
 
-    # 2. La línea de tendencia
-    ax.plot(x, p(x), "r--", linewidth=2, label='Tendencia (Promedio)')
+        # Importante: use_container_width=True hace que se ajuste al ancho de ESTA columna pequeña
+        st.pyplot(fig, use_container_width=True)
+        
+        # Nota explicativa debajo del gráfico
+        corr = df['Solo minutesPlayed'].corr(df['Solo score'])
+        st.caption(f"Correlación exacta: {corr:.2f}")
 
-    # 3. Etiquetas y Estilo
-    ax.set_title(f"Relación Minutos Jugados vs Puntaje", fontsize=16)
-    ax.set_xlabel("Minutos Jugados (Solo)", fontsize=12)
-    ax.set_ylabel("Puntaje (Solo Score)", fontsize=12)
-    ax.legend()
-    ax.grid(True, linestyle='--', alpha=0.6)
-
-    # --- MOSTRAR EN STREAMLIT ---
-    st.pyplot(fig)
-
-    # Mostrar dato de correlación
-    correlation = df['Solo minutesPlayed'].corr(df['Solo score'])
-    st.info(f"💡 **Dato Matemático:** La correlación es de **{correlation:.2f}**. (Cerca de 1.0 significa relación perfecta).")
-
-    st.divider()
-
-    # Opción para ver los datos crudos
-    if st.checkbox("Ver tabla de datos"):
-        st.dataframe(df.head(20))
+    # En la columna de la derecha puedes poner otra cosa (o dejarla vacía)
+    with col_derecha:
+        st.info("👈 El gráfico está confinado en la columna izquierda para no verse gigante.")
+        st.write("Aquí puedes poner tablas o texto explicativo.")
+        if st.checkbox("Ver datos"):
+            st.dataframe(df.head(10))
 
 except FileNotFoundError:
-    st.error("⚠️ Error: No se encuentra el archivo 'Fortnite_players_stats.csv'. Asegúrate de que esté en la misma carpeta.")
+    st.error("⚠️ No encuentro el archivo 'Fortnite_players_stats.csv'.")
