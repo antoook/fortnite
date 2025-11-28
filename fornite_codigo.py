@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Fortnite Stats", layout="wide")
-st.title("🏆 Análisis de Fortnite: Solo Mode")
+st.title("Análisis de Fortnite: Solo Mode")
 
 # 1. Cargar datos
 @st.cache_data
@@ -19,7 +19,7 @@ try:
 
     # --- COLUMNA IZQUIERDA: EL GRÁFICO PEQUEÑO ---
     with col_izquierda:
-        st.subheader("⏳ Minutos vs Puntaje")
+        st.subheader("Minutos vs Puntaje")
         
         # Datos y Tendencia
         x = df['Solo minutesPlayed']
@@ -47,7 +47,7 @@ try:
 
     # --- COLUMNA DERECHA: TABLA FILTRADA ---
     with col_derecha:
-        st.subheader("📊 Datos del Modo Solitario")
+        st.subheader("Datos del Modo Solitario")
         st.write("Explora las estadísticas detalladas de los jugadores.")
 
         # --- AQUÍ ESTÁ EL CAMBIO PARA FILTRAR COLUMNAS ---
@@ -60,4 +60,4 @@ try:
         # hide_index=True quita la columna de números 0,1,2... de la izquierda para que se vea más limpio
         st.dataframe(df_filtrado, height=400, hide_index=True)
 except FileNotFoundError:
-    st.error("⚠️ No encuentro el archivo 'Fortnite_players_stats.csv'.")
+    st.error("No encuentro el archivo 'Fortnite_players_stats.csv'.")
