@@ -52,13 +52,12 @@ try:
 
         # --- AQUÍ ESTÁ EL CAMBIO PARA FILTRAR COLUMNAS ---
         # 1. Creamos una lista con 'Player' y todas las columnas que tengan "Solo" en el nombre
-        columnas_solo = ['Player'] + [col for col in df.columns if 'Solo' in col]
-        
-        # 2. Creamos un nuevo dataframe solo con esas columnas
-        df_solo = df[columnas_solo]
+        df_filtrado = df[['Player', 'Solo score', 'Solo minutesPlayed']]
 
-        # 3. Mostramos la tabla filtrada
-        st.dataframe(df_solo, height=400) # height controla la altura de la tabla con scroll
+        # Ordenamos por puntaje (de mayor a menor) para que se vea como un ranking
+        df_filtrado = df_filtrado.sort_values(by='Solo score', ascending=False)
 
+        # hide_index=True quita la columna de números 0,1,2... de la izquierda para que se vea más limpio
+        st.dataframe(df_filtrado, height=400, hide_index=True)
 except FileNotFoundError:
     st.error("⚠️ No encuentro el archivo 'Fortnite_players_stats.csv'.")
