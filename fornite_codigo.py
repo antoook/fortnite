@@ -1,66 +1,15 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-st.set_page_config(page_title="Fortnite Stats", layout="wide")
-st.title("Análisis de Fortnite: Modo Solo")
+df = pd.read_csv("Fortnite_players_stats.csv")
 
-# 1. Cargar datos
-@st.cache_data
-def load_data():
-    return pd.read_csv("Fortnite_players_stats.csv")
-
-try:
-    df = load_data()
-
-    # --- DISEÑO DE COLUMNAS (Gráfico chico a la izq, Tabla a la der) ---
-    col_izquierda, col_derecha = st.columns([1, 2]) 
-
-    # --- COLUMNA IZQUIERDA: EL GRÁFICO PEQUEÑO ---
-    with col_izquierda:
-        st.subheader("Minutos vs Puntaje")
-        
-        # Datos y Tendencia
-        x = df['Solo minutesPlayed']
-        y = df['Solo score']
-        z = np.polyfit(x, y, 1)
-        p = np.poly1d(z)
-
-        # Gráfico compacto
-        fig, ax = plt.subplots(figsize=(5, 3.5)) 
-        ax.scatter(x, y, alpha=0.5, c='#1f77b4', s=5)
-        ax.plot(x, p(x), "r--", linewidth=1, label='Tendencia')
-
-        # Estilos
-        ax.set_title("Relación Tiempo/Puntaje", fontsize=9)
-        ax.set_xlabel("Minutos", fontsize=7)
-        ax.set_ylabel("Puntaje", fontsize=7)
-        ax.tick_params(labelsize=6)
-        ax.legend(fontsize=6)
-        ax.grid(True, alpha=0.3)
-
-        st.pyplot(fig, use_container_width=True)
-        
-        corr = df['Solo minutesPlayed'].corr(df['Solo score'])
-        st.caption(f"Correlación: {corr:.2f}")
-
-    # --- COLUMNA DERECHA: TABLA FILTRADA ---
-    with col_derecha:
-        st.subheader("Datos del Modo Solitario")
-        st.write("Explora las estadísticas detalladas de los jugadores.")
-
-        # --- AQUÍ ESTÁ EL CAMBIO PARA FILTRAR COLUMNAS ---
-        # 1. Creamos una lista con 'Player' y todas las columnas que tengan "Solo" en el nombre
-        df_filtrado = df[['Player', 'Solo score', 'Solo minutesPlayed']]
-
-        # Ordenamos por puntaje (de mayor a menor) para que se vea como un ranking
-        df_filtrado = df_filtrado.sort_values(by='Solo score', ascending=False)
-
-        # hide_index=True quita la columna de números 0,1,2... de la izquierda para que se vea más limpio
-        st.dataframe(df_filtrado, height=400, hide_index=True)
-except FileNotFoundError:
-    st.error("No encuentro el archivo 'Fortnite_players_stats.csv'.")
+st.write("""
+# STATS FORTNITE PLAYERS.
+## Gráficos usando la base de datos estadística de Fortnite.
+---
+""")
 
 #--------------grafico de horas x partidas ganadas --------------#
 
@@ -74,6 +23,9 @@ top_n = st.sidebar.slider("Cantidad de jugadores a mostrar (Top N)", min_value=1
 
 # Filtramos los top N jugadores según la selección
 df_chart = df_sorted.head(top_n).reset_index(drop=True)
+
+
+
 
 # 3. Crear el gráfico con Matplotlib
 fig, ax1 = plt.subplots(figsize=(12, 6))
@@ -104,5 +56,168 @@ fig.tight_layout()
 st.pyplot(fig)
 
 # Mostrar tabla de datos opcional
+
+#para que parta de 1 en teoría
+df_chart.index = df_chart.index + 1
+
 if st.checkbox("Mostrar datos en tabla"):
 	st.dataframe(df_chart[['Player', 'Solo minutesPlayed', 'Solo top1']])
+
+
+
+
+st.markdown("---")
+#_____grafico 2______
+
+st.subheader("Minutos vs Puntaje")
+
+# Datos y Tendencia
+x = df['Solo minutesPlayed']
+y = df['Solo score']
+z = np.polyfit(x, y, 1)
+p = np.poly1d(z)
+
+# Gráfico
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.scatter(x, y, alpha=0.5, c='#1f77b4', s=15) # Aumenté un poco el tamaño de los puntos (s=15)
+ax.plot(x, p(x), "r--", linewidth=2, label='Tendencia') # Línea un poco más gruesa
+
+# --- CORRECCIONES DE TAMAÑO ---
+# Antes tenías fontsize=9 y 7, los he subido a 16 y 12 para que se lean bien.
+ax.set_title("Relación Tiempo/Puntaje", fontsize=16)
+ax.set_xlabel("Minutos", fontsize=12)
+ax.set_ylabel("Puntaje", fontsize=12)
+
+# Antes labelsize era 6 (muy pequeño), ahora es 10
+ax.tick_params(axis='both', labelsize=10) 
+ax.legend(fontsize=10)
+ax.grid(True, alpha=0.3)
+
+ax.ticklabel_format(style='plain', axis='y')
+
+st.pyplot(fig, use_container_width=True)
+
+corr = df['Solo minutesPlayed'].corr(df['Solo score'])
+st.caption(f"Correlación: {corr:.2f}")
+
+
+st.subheader("Datos del Modo Solitario")
+st.write("Explora las estadísticas detalladas de los jugadores.")
+
+# --- DATAFRAME FILTRADO ---
+# 1. Creamos una lista con 'Player' y todas las columnas que tengan "Solo" en el nombre
+# Seleccionamos columnas específicas para que no sea tan ancha la tabla
+cols_to_show = ['Player', 'Solo score', 'Solo minutesPlayed']
+
+# Si alguna columna no existe, pandas fallaría, así que usamos intersection para ser seguros
+cols_validas = [c for c in cols_to_show if c in df.columns]
+
+df_filtrado = df[cols_validas]
+
+# Ordenamos por puntaje (de mayor a menor)
+df_filtrado = df_filtrado.sort_values(by='Solo score', ascending=False)
+
+# hide_index=True quita la columna de números 0,1,2... de la izquierda
+st.dataframe(df_filtrado, height=400, hide_index=True)
+
+
+
+#____grafico 3______
+
+
+
+
+# --- TERCER GRÁFICO: Donut Chart de Kills por Modo ---
+
+st.markdown("---")
+st.title("¿Dónde se hacen más Kills?")
+st.write("Distribución del total de eliminaciones por tipo de juego.")
+
+# 1. Preparar los datos
+kills_data = [
+    df['Solo kills'].sum(),
+    df['Duos kills'].sum(),
+    df['Trios kills'].sum(),
+    df['Squads kills'].sum()
+]
+labels_kills = ['Solo', 'Duos', 'Trios', 'Squads']
+colors_kills = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'] # Azul, Naranja, Verde, Rojo
+
+# 2. Crear el gráfico de Donut
+fig_donut, ax_donut = plt.subplots(figsize=(10, 6))
+
+
+wedges, texts, autotexts = ax_donut.pie(
+    kills_data, 
+    labels=None, # Quitamos las etiquetas del gráfico para ponerlas en la leyenda
+    autopct='%1.1f%%', 
+    startangle=140, 
+    colors=colors_kills, 
+    pctdistance=0.80, # Posición de los porcentajes
+    wedgeprops=dict(width=0.4, edgecolor='w'), # Ancho del anillo y borde blanco
+    textprops=dict(color="white", weight="bold")
+)
+
+# 3. Configurar la Leyenda a la derecha
+ax_donut.legend(wedges, labels_kills,
+          title="Modos de Juego",
+          loc="center left",
+          bbox_to_anchor=(1, 0, 0.5, 1)) # Esto mueve la leyenda fuera del gráfico a la derecha
+
+ax_donut.set_title("Porcentaje de Kills Totales (Donut Chart)", fontsize=16)
+
+# 4. Mostrar en Streamlit
+st.pyplot(fig_donut)
+
+
+# Conclusión
+max_kills_index = kills_data.index(max(kills_data))
+mejor_modo = labels_kills[max_kills_index]
+st.success(f"💡 *Conclusión:* El modo *{mejor_modo}* concentra la mayor cantidad de kills.")
+
+
+
+
+
+
+#_____grafico 4_____
+
+
+# --- SEGUNDO GRÁFICO: Barras de Score por Modo de Juego (Formato Entero) ---
+
+st.markdown("---") 
+st.title("Puntaje Total por Modo de Juego")
+
+# 1. Preparar los datos 
+modes_list = ['Solo', 'Duos', 'Trios', 'Squads']
+total_scores = [
+    df['Solo score'].sum(),
+    df['Duos score'].sum(),
+    df['Trios score'].sum(),
+    df['Squads score'].sum()
+]
+
+# 2. Crear el gráfico
+fig_bar, ax_bar = plt.subplots(figsize=(10, 6))
+
+bar_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'] 
+bars = ax_bar.bar(modes_list, total_scores, color=bar_colors)
+
+ax_bar.set_xlabel('Modo de Juego', fontsize=12)
+ax_bar.set_ylabel('Puntaje Total Acumulado', fontsize=12)
+ax_bar.set_title('Comparación de Scores: Solo, Duos, Trios y Squads', fontsize=14)
+
+
+ax_bar.ticklabel_format(style='plain', axis='y')
+
+
+
+# Etiquetas encima de las barras
+for bar in bars:
+    height = bar.get_height()
+    ax_bar.text(bar.get_x() + bar.get_width()/2., height,
+            f'{int(height):,}', 
+            ha='center', va='bottom', fontsize=10)
+
+# 3. Mostrar en Streamlit
+st.pyplot(fig_bar)
